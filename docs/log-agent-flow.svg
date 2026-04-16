@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc">
+  <title id="title">Spectrum Log Agent Flow</title>
+  <desc id="desc">zap or slog emits logs, bridge converts to OpenTelemetry log records, OTLP exporter sends to localhost log-agent, which receives, processes and exports to Kafka.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eef4ff"/>
+    </linearGradient>
+    <linearGradient id="appPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#edf6ff"/>
+    </linearGradient>
+    <linearGradient id="agentPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#eefcf5"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#365a7a"/>
+    </marker>
+    <style>
+      .title { font: 700 28px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #17324d; }
+      .subtitle { font: 400 15px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #4a6580; }
+      .panel-title { font: 700 18px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #17324d; }
+      .box-title { font: 700 16px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #17324d; }
+      .box-text { font: 400 13px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #51697f; }
+      .small { font: 400 12px 'Segoe UI', 'Microsoft YaHei', sans-serif; fill: #5f7489; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="560" rx="20" fill="url(#bg)"/>
+
+  <text x="60" y="52" class="title">Spectrum · 星谱 日志传输流程</text>
+  <text x="60" y="82" class="subtitle">生产环境主链路：业务日志 -> OTel LogRecord -> OTLP exporter -> localhost:4317 log-agent -> Kafka</text>
+
+  <rect x="48" y="118" width="560" height="360" rx="24" fill="url(#appPanel)" stroke="#b7d1eb" stroke-width="2"/>
+  <text x="76" y="154" class="panel-title">业务应用进程内</text>
+  <text x="76" y="178" class="small">负责日志接入、语义标准化与本地 OTLP 发送</text>
+
+  <rect x="86" y="230" width="120" height="88" rx="16" fill="#ffffff" stroke="#8db1d6" stroke-width="2"/>
+  <text x="118" y="264" class="box-title">zap</text>
+  <text x="112" y="286" class="box-text">或 slog</text>
+
+  <rect x="246" y="230" width="140" height="88" rx="16" fill="#ffffff" stroke="#8db1d6" stroke-width="2"/>
+  <text x="278" y="264" class="box-title">bridge</text>
+  <text x="264" y="286" class="box-text">统一字段映射</text>
+
+  <rect x="426" y="230" width="140" height="88" rx="16" fill="#ffffff" stroke="#8db1d6" stroke-width="2"/>
+  <text x="448" y="264" class="box-title">OTel LogRecord</text>
+  <text x="458" y="286" class="box-text">标准日志语义</text>
+
+  <rect x="176" y="354" width="300" height="88" rx="16" fill="#ffffff" stroke="#8db1d6" stroke-width="2"/>
+  <text x="255" y="388" class="box-title">OTLP exporter</text>
+  <text x="214" y="410" class="box-text">发送到 localhost:4317</text>
+
+  <line x1="206" y1="274" x2="246" y2="274" stroke="#365a7a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="386" y1="274" x2="426" y2="274" stroke="#365a7a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="496" y1="318" x2="496" y2="354" stroke="#365a7a" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="672" y="118" width="560" height="360" rx="24" fill="url(#agentPanel)" stroke="#b8dcc8" stroke-width="2"/>
+  <text x="700" y="154" class="panel-title">本机 log-agent / Collector 进程内</text>
+  <text x="700" y="178" class="small">负责本地接收、处理和向平台后端转发</text>
+
+  <rect x="708" y="230" width="140" height="88" rx="16" fill="#ffffff" stroke="#95c5a8" stroke-width="2"/>
+  <text x="732" y="264" class="box-title">OTLP receiver</text>
+  <text x="742" y="286" class="box-text">监听 4317</text>
+
+  <rect x="888" y="230" width="140" height="88" rx="16" fill="#ffffff" stroke="#95c5a8" stroke-width="2"/>
+  <text x="924" y="264" class="box-title">processors</text>
+  <text x="913" y="286" class="box-text">清洗与增强</text>
+
+  <rect x="1068" y="230" width="120" height="88" rx="16" fill="#ffffff" stroke="#95c5a8" stroke-width="2"/>
+  <text x="1098" y="264" class="box-title">Kafka</text>
+  <text x="1083" y="286" class="box-text">exporter</text>
+
+  <line x1="848" y1="274" x2="888" y2="274" stroke="#365a7a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1028" y1="274" x2="1068" y2="274" stroke="#365a7a" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="476" y1="398" x2="708" y2="398" stroke="#365a7a" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="529" y="384" class="small">OTLP / gRPC</text>
+  <text x="536" y="418" class="small">JSON 结构化日志语义</text>
+
+  <rect x="86" y="486" width="1102" height="42" rx="12" fill="#ffffff" stroke="#d5e3f0" stroke-width="1.5"/>
+  <text x="112" y="512" class="small">职责边界：应用进程只负责产生日志并发送到本机 agent；log-agent 负责接收、处理、路由和转发，应用不直接耦合 Kafka 或远端 Collector 拓扑。</text>
+</svg>
