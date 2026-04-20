@@ -6,6 +6,8 @@ import (
 	"time"
 
 	otellog "go.opentelemetry.io/otel/log"
+
+	"github.com/stellhub/stellspec-go-sdk/internal/timefmt"
 )
 
 // AnyToValue converts common Go values into an OpenTelemetry log value.
@@ -48,7 +50,7 @@ func AnyToValue(value any) otellog.Value {
 	case []byte:
 		return otellog.BytesValue(v)
 	case time.Time:
-		return otellog.StringValue(v.Format(time.RFC3339Nano))
+		return otellog.StringValue(timefmt.Format(v))
 	case time.Duration:
 		return otellog.StringValue(v.String())
 	case error:

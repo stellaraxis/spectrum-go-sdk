@@ -11,6 +11,8 @@ import (
 	"time"
 
 	sdklog "go.opentelemetry.io/otel/sdk/log"
+
+	"github.com/stellhub/stellspec-go-sdk/internal/timefmt"
 )
 
 // FailoverExporter wraps a primary exporter and persists records locally if export fails.
@@ -74,7 +76,7 @@ func (e *FailoverExporter) appendFallback(records []sdklog.Record, exportErr err
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	fallbackAt := time.Now().Format(time.RFC3339Nano)
+	fallbackAt := timefmt.Format(time.Now())
 	for _, record := range records {
 		payload := map[string]any{
 			"fallback_time": fallbackAt,

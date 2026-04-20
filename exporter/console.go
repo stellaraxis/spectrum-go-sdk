@@ -8,11 +8,12 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
+
+	"github.com/stellhub/stellspec-go-sdk/internal/timefmt"
 )
 
 // ConsoleExporter writes structured records to local writers for development use.
@@ -113,7 +114,7 @@ func (e *ConsoleExporter) formatRecord(record sdklog.Record) (string, error) {
 
 func formatConsoleRecord(record sdklog.Record) string {
 	parts := []string{
-		record.Timestamp().Format(time.RFC3339Nano),
+		timefmt.Format(record.Timestamp()),
 		strings.ToUpper(record.SeverityText()),
 		record.Body().String(),
 	}
@@ -132,8 +133,8 @@ func formatConsoleRecord(record sdklog.Record) string {
 
 func buildJSONRecord(record sdklog.Record) map[string]any {
 	payload := map[string]any{
-		"timestamp":       record.Timestamp().Format(time.RFC3339Nano),
-		"observed_time":   record.ObservedTimestamp().Format(time.RFC3339Nano),
+		"timestamp":       timefmt.Format(record.Timestamp()),
+		"observed_time":   timefmt.Format(record.ObservedTimestamp()),
 		"severity_number": int(record.Severity()),
 		"severity_text":   record.SeverityText(),
 		"body":            logValueToAny(record.Body()),
