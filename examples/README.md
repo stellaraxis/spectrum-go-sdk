@@ -1,6 +1,6 @@
 # Examples
 
-本目录提供 `spectrum-go-sdk` 的最小可运行示例。
+本目录提供 `stellspec-go-sdk` 的最小可运行示例。
 
 ## Zap 示例
 

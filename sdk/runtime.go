@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/exporter"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/exporter"
 	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
 	sdklog "go.opentelemetry.io/otel/sdk/log"

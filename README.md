@@ -1,8 +1,8 @@
-# Spectrum · 星谱 Go SDK
+# stellspec · 星谱 Go SDK
 
-`Spectrum · 星谱` 是 `Stellar Axis（星轴）` 体系中的日志平台。
+`stellspec · 星谱` 是 `Stellar Axis（星轴）` 体系中的日志平台。
 
-`spectrum-go-sdk` 是 `Spectrum · 星谱` 面向 Go 语言生态的官方 SDK 实现，负责在业务应用进程内完成日志桥接、日志标准化以及通过 OTLP 协议将日志发送到本机日志代理。
+`stellspec-go-sdk` 是 `stellspec · 星谱` 面向 Go 语言生态的官方 SDK 实现，负责在业务应用进程内完成日志桥接、日志标准化以及通过 OTLP 协议将日志发送到本机日志代理。
 
 ## 项目定位
 
@@ -11,7 +11,7 @@
 - `zap bridge`
 - `slog bridge`
 
-项目希望让业务应用无需直接感知底层 OTLP 细节，只需要继续使用熟悉的日志 API，即可将日志可靠接入 `Spectrum · 星谱` 的日志采集链路。
+项目希望让业务应用无需直接感知底层 OTLP 细节，只需要继续使用熟悉的日志 API，即可将日志可靠接入 `stellspec · 星谱` 的日志采集链路。
 
 ## 设计目标
 
@@ -55,7 +55,7 @@ zap / slog
 
 ### Log Agent 流程图
 
-![Spectrum Log Agent Flow](docs/log-agent-flow.svg)
+![stellspec Log Agent Flow](docs/log-agent-flow.svg)
 
 当前推荐的生产链路说明如下：
 
@@ -133,7 +133,7 @@ localhost:4317
   - 最大重试间隔 `30s`
   - 单批总重试窗口 `1m`
 - 当 OTLP 推送最终失败时，日志会优先写入本地兜底文件：
-  - 默认路径：`logs/spectrum-fallback.log`
+  - 默认路径：`logs/stellspec-fallback.log`
 - SDK 会在进入 exporter 之前统一截断超长日志正文：
   - 当前固定最大正文长度：`32 KiB`
   - 截断后会自动追加属性：
@@ -149,23 +149,23 @@ localhost:4317
 
 ## 全局环境变量规范
 
-`Stellar Axis（星轴）` 体系建议所有中间件统一遵循一套基础应用环境变量规范，详细定义见 [docs/environment-variable-spec.md](E:\PersonalCode\GoProject\spectrum-go-sdk\docs\environment-variable-spec.md)。
+`Stellar Axis（星轴）` 体系建议所有中间件统一遵循一套基础应用环境变量规范，详细定义见 [docs/environment-variable-spec.md](E:\PersonalCode\GoProject\stellspec-go-sdk\docs\environment-variable-spec.md)。
 
-当前 `spectrum-go-sdk` 已按如下优先级读取配置：
+当前 `stellspec-go-sdk` 已按如下优先级读取配置：
 
 1. 代码显式配置
-2. `SPECTRUM_*` 产品级覆盖变量
+2. `stellspec_*` 产品级覆盖变量
 3. `STELLAR_*` 全局基础变量
 4. SDK 默认值
 
 其中：
 
 - `STELLAR_*` 用于平台统一注入的应用身份和部署拓扑元数据
-- `SPECTRUM_*` 用于日志 SDK 自身的局部覆盖，例如 OTLP 地址、输出目标、日志级别
+- `stellspec_*` 用于日志 SDK 自身的局部覆盖，例如 OTLP 地址、输出目标、日志级别
 
 完整字段说明、默认值、重试配置、失败落盘行为和环境变量解释可查看：
 
-- [docs/configuration-reference.md](E:\PersonalCode\GoProject\spectrum-go-sdk\docs\configuration-reference.md)
+- [docs/configuration-reference.md](E:\PersonalCode\GoProject\stellspec-go-sdk\docs\configuration-reference.md)
 
 推荐的全局基础变量如下：
 
@@ -203,7 +203,7 @@ localhost:4317
 
 ## 快速开始
 
-以下内容用于固定 `spectrum-go-sdk` 的推荐公开 API 形态，便于后续代码实现时保持一致。
+以下内容用于固定 `stellspec-go-sdk` 的推荐公开 API 形态，便于后续代码实现时保持一致。
 
 由于仓库当前仍处于初始化阶段，下列代码示例描述的是“建议落地后的使用方式”，用于指导 SDK 包设计、初始化流程和对外接入约定。
 
@@ -236,7 +236,7 @@ localhost:4317
 
 默认行为如下：
 
-- 自动读取 `STELLAR_*` 与 `SPECTRUM_*` 环境变量
+- 自动读取 `STELLAR_*` 与 `stellspec_*` 环境变量
 - 如果未注入基础应用元数据，则回退到示例默认值
 - 默认以开发模式输出到本地控制台
 - 生产链路默认启用 exporter 重试、失败落本地文件和超长正文截断保护
@@ -255,9 +255,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/stellaraxis/spectrum-go-sdk/bridge/zapbridge"
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/bridge/zapbridge"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 	"go.uber.org/zap"
 )
 
@@ -281,7 +281,7 @@ func main() {
 		ExportTimeout:    3 * time.Second,
 		MaxBatchSize:     512,
 		MaxQueueSize:     2048,
-		FallbackFilePath: "logs/spectrum-fallback.log",
+		FallbackFilePath: "logs/stellspec-fallback.log",
 		Retry: config.RetryConfig{
 			Enabled:         boolPtr(true),
 			InitialInterval: durationPtr(5 * time.Second),
@@ -297,14 +297,14 @@ func main() {
 
 	runtime, err := sdk.New(ctx, cfg)
 	if err != nil {
-		log.Fatalf("init spectrum runtime failed: %v", err)
+		log.Fatalf("init stellspec runtime failed: %v", err)
 	}
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		if err := runtime.Shutdown(shutdownCtx); err != nil {
-			log.Printf("shutdown spectrum runtime failed: %v", err)
+			log.Printf("shutdown stellspec runtime failed: %v", err)
 		}
 	}()
 
@@ -349,7 +349,7 @@ func durationPtr(v time.Duration) *time.Duration {
 - 自动透传 `zap.Field`
 - 支持调用方、堆栈、错误对象、时间戳写入 `LogRecord`
 - 支持开发环境输出到控制台，生产环境输出到 OTLP exporter
-- 支持通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置 exporter 重试策略
+- 支持通过 `config.Config.Retry` 或 `stellspec_RETRY_*` 配置 exporter 重试策略
 - 支持 OTLP 最终失败时优先落本地兜底文件
 - 支持自动截断超长正文并输出截断标记属性
 
@@ -368,9 +368,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/stellaraxis/spectrum-go-sdk/bridge/slogbridge"
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/bridge/slogbridge"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 )
 
 func main() {
@@ -393,7 +393,7 @@ func main() {
 		ExportTimeout:    3 * time.Second,
 		MaxBatchSize:     512,
 		MaxQueueSize:     2048,
-		FallbackFilePath: "logs/spectrum-fallback.log",
+		FallbackFilePath: "logs/stellspec-fallback.log",
 		Retry: config.RetryConfig{
 			Enabled:         boolPtr(true),
 			InitialInterval: durationPtr(5 * time.Second),
@@ -406,14 +406,14 @@ func main() {
 
 	runtime, err := sdk.New(ctx, cfg)
 	if err != nil {
-		log.Fatalf("init spectrum runtime failed: %v", err)
+		log.Fatalf("init stellspec runtime failed: %v", err)
 	}
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		if err := runtime.Shutdown(shutdownCtx); err != nil {
-			log.Printf("shutdown spectrum runtime failed: %v", err)
+			log.Printf("shutdown stellspec runtime failed: %v", err)
 		}
 	}()
 
@@ -461,7 +461,7 @@ func durationPtr(v time.Duration) *time.Duration {
 - 支持 `WithAttrs`、`WithGroup`、`AddSource`
 - 支持 `context.Context` 中的链路信息透传
 - 与 `zap bridge` 共用同一套 Runtime、Exporter 与配置模型
-- 支持通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置 exporter 重试策略
+- 支持通过 `config.Config.Retry` 或 `stellspec_RETRY_*` 配置 exporter 重试策略
 - 支持 OTLP 最终失败时优先落本地兜底文件
 - 支持自动截断超长正文并输出截断标记属性
 
@@ -470,7 +470,7 @@ func durationPtr(v time.Duration) *time.Duration {
 建议仓库在后续实现中采用如下目录布局：
 
 ```text
-spectrum-go-sdk/
+stellspec-go-sdk/
 ├── bridge/
 │   ├── zapbridge/
 │   │   ├── logger.go
@@ -603,7 +603,7 @@ type RetryConfig struct {
 | `ExportTimeout` | `time.Duration` | `3s` | 单次导出超时 |
 | `MaxBatchSize` | `int` | `512` | 单批最大条数 |
 | `MaxQueueSize` | `int` | `2048` | 本地队列大小 |
-| `FallbackFilePath` | `string` | `logs/spectrum-fallback.log` | OTLP 最终失败后的本地兜底文件路径 |
+| `FallbackFilePath` | `string` | `logs/stellspec-fallback.log` | OTLP 最终失败后的本地兜底文件路径 |
 | `Retry.Enabled` | `*bool` | `true` | 是否启用 OTLP exporter 级别重试 |
 | `Retry.InitialInterval` | `*time.Duration` | `5s` | 第一次重试前等待时间 |
 | `Retry.MaxInterval` | `*time.Duration` | `30s` | 指数退避的最大等待间隔 |
@@ -652,42 +652,42 @@ type RetryConfig struct {
 | `STELLAR_POD_IP` | `PodIP` |
 | `STELLAR_CONTAINER_NAME` | `ContainerName` |
 
-#### Spectrum 产品级覆盖变量
+#### stellspec 产品级覆盖变量
 
 | 环境变量 | 对应字段 |
 | :--- | :--- |
-| `SPECTRUM_SERVICE_NAME` | `ServiceName` |
-| `SPECTRUM_SERVICE_NAMESPACE` | `ServiceNamespace` |
-| `SPECTRUM_SERVICE_VERSION` | `ServiceVersion` |
-| `SPECTRUM_SERVICE_INSTANCE_ID` | `ServiceInstanceID` |
-| `SPECTRUM_ENVIRONMENT` | `Environment` |
-| `SPECTRUM_ENDPOINT` | `Endpoint` |
-| `SPECTRUM_PROTOCOL` | `Protocol` |
-| `SPECTRUM_OUTPUT` | `Output` |
-| `SPECTRUM_FORMAT` | `Format` |
-| `SPECTRUM_LEVEL` | `Level` |
-| `SPECTRUM_INSECURE` | `Insecure` |
-| `SPECTRUM_DEVELOPMENT` | `Development` |
-| `SPECTRUM_ENABLE_CALLER` | `EnableCaller` |
-| `SPECTRUM_ENABLE_STACKTRACE` | `EnableStacktrace` |
-| `SPECTRUM_BATCH_TIMEOUT` | `BatchTimeout` |
-| `SPECTRUM_EXPORT_TIMEOUT` | `ExportTimeout` |
-| `SPECTRUM_MAX_BATCH_SIZE` | `MaxBatchSize` |
-| `SPECTRUM_MAX_QUEUE_SIZE` | `MaxQueueSize` |
-| `SPECTRUM_FALLBACK_FILE_PATH` | `FallbackFilePath` |
-| `SPECTRUM_RETRY_ENABLED` | `Retry.Enabled` |
-| `SPECTRUM_RETRY_INITIAL_INTERVAL` | `Retry.InitialInterval` |
-| `SPECTRUM_RETRY_MAX_INTERVAL` | `Retry.MaxInterval` |
-| `SPECTRUM_RETRY_MAX_ELAPSED_TIME` | `Retry.MaxElapsedTime` |
+| `stellspec_SERVICE_NAME` | `ServiceName` |
+| `stellspec_SERVICE_NAMESPACE` | `ServiceNamespace` |
+| `stellspec_SERVICE_VERSION` | `ServiceVersion` |
+| `stellspec_SERVICE_INSTANCE_ID` | `ServiceInstanceID` |
+| `stellspec_ENVIRONMENT` | `Environment` |
+| `stellspec_ENDPOINT` | `Endpoint` |
+| `stellspec_PROTOCOL` | `Protocol` |
+| `stellspec_OUTPUT` | `Output` |
+| `stellspec_FORMAT` | `Format` |
+| `stellspec_LEVEL` | `Level` |
+| `stellspec_INSECURE` | `Insecure` |
+| `stellspec_DEVELOPMENT` | `Development` |
+| `stellspec_ENABLE_CALLER` | `EnableCaller` |
+| `stellspec_ENABLE_STACKTRACE` | `EnableStacktrace` |
+| `stellspec_BATCH_TIMEOUT` | `BatchTimeout` |
+| `stellspec_EXPORT_TIMEOUT` | `ExportTimeout` |
+| `stellspec_MAX_BATCH_SIZE` | `MaxBatchSize` |
+| `stellspec_MAX_QUEUE_SIZE` | `MaxQueueSize` |
+| `stellspec_FALLBACK_FILE_PATH` | `FallbackFilePath` |
+| `stellspec_RETRY_ENABLED` | `Retry.Enabled` |
+| `stellspec_RETRY_INITIAL_INTERVAL` | `Retry.InitialInterval` |
+| `stellspec_RETRY_MAX_INTERVAL` | `Retry.MaxInterval` |
+| `stellspec_RETRY_MAX_ELAPSED_TIME` | `Retry.MaxElapsedTime` |
 
 ### 新增能力速览
 
 如果你只关心这次新增的能力，可以先看这几项：
 
 - exporter 重试：
-  - 通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置
+  - 通过 `config.Config.Retry` 或 `stellspec_RETRY_*` 配置
 - 推送失败本地落盘：
-  - 通过 `FallbackFilePath` 或 `SPECTRUM_FALLBACK_FILE_PATH` 配置
+  - 通过 `FallbackFilePath` 或 `stellspec_FALLBACK_FILE_PATH` 配置
 - 超长日志正文截断：
   - SDK 内固定为 `32 KiB`
   - 当前不对业务开放配置
@@ -737,12 +737,12 @@ type RetryConfig struct {
 
 根据 `Stellar Axis（星轴）` 体系的统一命名规则：
 
-- 日志平台名称：`Spectrum · 星谱`
-- Go SDK 名称：`spectrum-go-sdk`
+- 日志平台名称：`stellspec · 星谱`
+- Go SDK 名称：`stellspec-go-sdk`
 
 其中：
 
-- `spectrum` 表示日志平台产品归属
+- `stellspec` 表示日志平台产品归属
 - `go` 表示语言维度
 - `sdk` 表示工程角色
 

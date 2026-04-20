@@ -25,12 +25,12 @@ func TestNormalizeDevelopmentDefaults(t *testing.T) {
 func TestApplyEnv(t *testing.T) {
 	t.Setenv(stellarAppName, "billing-service")
 	t.Setenv(stellarEnv, "prod")
-	t.Setenv(spectrumEndpoint, "localhost:4317")
-	t.Setenv(spectrumFallbackFilePath, "logs/custom-fallback.log")
-	t.Setenv(spectrumRetryEnabled, "false")
-	t.Setenv(spectrumRetryInitial, "2s")
-	t.Setenv(spectrumRetryMaxInterval, "10s")
-	t.Setenv(spectrumRetryMaxElapsed, "20s")
+	t.Setenv(stellspecEndpoint, "localhost:4317")
+	t.Setenv(stellspecFallbackFilePath, "logs/custom-fallback.log")
+	t.Setenv(stellspecRetryEnabled, "false")
+	t.Setenv(stellspecRetryInitial, "2s")
+	t.Setenv(stellspecRetryMaxInterval, "10s")
+	t.Setenv(stellspecRetryMaxElapsed, "20s")
 
 	cfg := Default()
 	if err := cfg.ApplyEnv(); err != nil {
@@ -95,16 +95,16 @@ func TestNormalizeUsesStellarMetadataDefaults(t *testing.T) {
 	}
 }
 
-func TestSpectrumEnvOverridesStellarEnv(t *testing.T) {
+func TestStellspecEnvOverridesStellarEnv(t *testing.T) {
 	t.Setenv(stellarAppName, "order-service")
-	t.Setenv(spectrumServiceName, "spectrum-order-service")
+	t.Setenv(stellspecServiceName, "stellspec-order-service")
 
 	cfg := Default()
 	if err := cfg.ApplyEnv(); err != nil {
 		t.Fatalf("apply env: %v", err)
 	}
 
-	if cfg.ServiceName != "spectrum-order-service" {
+	if cfg.ServiceName != "stellspec-order-service" {
 		t.Fatalf("unexpected service name %q", cfg.ServiceName)
 	}
 }

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc">
-  <title id="title">Spectrum Log Agent Flow</title>
+  <title id="title">Stellspec Log Agent Flow</title>
   <desc id="desc">zap or slog emits logs, bridge converts to OpenTelemetry log records, OTLP exporter sends to localhost log-agent, which receives, processes and exports to Kafka.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -29,7 +29,7 @@
 
   <rect x="0" y="0" width="1280" height="560" rx="20" fill="url(#bg)"/>
 
-  <text x="60" y="52" class="title">Spectrum · 星谱 日志传输流程</text>
+  <text x="60" y="52" class="title">Stellspec · 星谱 日志传输流程</text>
   <text x="60" y="82" class="subtitle">生产环境主链路：业务日志 -> OTel LogRecord -> OTLP exporter -> localhost:4317 log-agent -> Kafka</text>
 
   <rect x="48" y="118" width="560" height="360" rx="24" fill="url(#appPanel)" stroke="#b7d1eb" stroke-width="2"/>

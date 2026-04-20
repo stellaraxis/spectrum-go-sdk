@@ -1,12 +1,12 @@
 # Stellar Axis 基础应用环境变量规范
 
-本文档是 `spectrum-go-sdk` 仓库内的实现参考副本。
+本文档是 `stellspec-go-sdk` 仓库内的实现参考副本。
 
 全体系的权威版本位于：
 
 - `E:\PersonalCode\stellar\docs\environment-variable-spec.md`
 
-当前文档仅用于说明 `spectrum-go-sdk` 如何落地该规范。
+当前文档仅用于说明 `stellspec-go-sdk` 如何落地该规范。
 
 设计目标如下：
 
@@ -95,7 +95,7 @@
 
 在统一 `STELLAR_*` 的前提下，各中间件可以保留自己的产品级覆盖变量，例如：
 
-- 日志平台：`SPECTRUM_*`
+- 日志平台：`STELLSPEC_*`
 - 链路平台：`STARTRACE_*`
 - 配置中心：`NEBULA_*`
 
@@ -103,9 +103,9 @@
 
 以日志 SDK 为例：
 
-- `SPECTRUM_SERVICE_NAME` 可以覆盖 `STELLAR_APP_NAME`
-- `SPECTRUM_ENDPOINT` 可以定义日志上报地址
-- `SPECTRUM_OUTPUT` 可以定义日志输出方式
+- `STELLSPEC_SERVICE_NAME` 可以覆盖 `STELLAR_APP_NAME`
+- `STELLSPEC_ENDPOINT` 可以定义日志上报地址
+- `STELLSPEC_OUTPUT` 可以定义日志输出方式
 
 ## Kubernetes 注入建议
 
@@ -118,13 +118,13 @@
 - `status.hostIP`
 - 镜像版本或发布系统注入的应用版本号
 
-## 对 Spectrum SDK 的约束
+## 对 Stellspec SDK 的约束
 
-当前 `spectrum-go-sdk` 需要遵循本规范：
+当前 `stellspec-go-sdk` 需要遵循本规范：
 
 - 默认读取 `STELLAR_*` 基础元数据
 - 将这些元数据写入 OpenTelemetry Resource
-- 允许 `SPECTRUM_*` 对日志 SDK 局部行为进行覆盖
+- 允许 `STELLSPEC_*` 对日志 SDK 局部行为进行覆盖
 - 在业务代码未显式传入 `ServiceName`、`ServiceVersion` 等字段时，自动从 `STELLAR_*` 中补全
 
 ## 架构建议：抽离通用基础元数据 SDK

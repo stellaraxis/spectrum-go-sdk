@@ -1,6 +1,6 @@
-# Spectrum Go SDK 配置说明
+# Stellspec Go SDK 配置说明
 
-本文档使用中文详细说明 `config.Config` 中每个字段的语义，以及 `STELLAR_*`、`SPECTRUM_*` 环境变量在当前 SDK 中的含义、默认行为与推荐使用方式。
+本文档使用中文详细说明 `config.Config` 中每个字段的语义，以及 `STELLAR_*`、`STELLSPEC_*` 环境变量在当前 SDK 中的含义、默认行为与推荐使用方式。
 
 ## Config 字段说明
 
@@ -35,7 +35,7 @@
 | `ExportTimeout` | `time.Duration` | `3s` | 单次导出的超时时间。超时后当前批次会失败，并进入失败兜底逻辑。 |
 | `MaxBatchSize` | `int` | `512` | 单批次最大日志条数。超过后会拆分导出。 |
 | `MaxQueueSize` | `int` | `2048` | BatchProcessor 队列最大容量。队列满时 OTel 会丢弃最老记录，因此需要按峰值流量谨慎设置。 |
-| `FallbackFilePath` | `string` | `logs/spectrum-fallback.log` | OTLP 推送最终失败后的本地兜底文件路径。当前实现按 JSON 行顺序追加。 |
+| `FallbackFilePath` | `string` | `logs/stellspec-fallback.log` | OTLP 推送最终失败后的本地兜底文件路径。当前实现按 JSON 行顺序追加。 |
 | `Retry.Enabled` | `*bool` | `true` | 是否启用 OTLP exporter 的瞬时错误重试。关闭后遇到可重试错误会直接失败。 |
 | `Retry.InitialInterval` | `*time.Duration` | `5s` | 第一次重试前等待多久。适合处理 log-agent 短暂重启、端口瞬断等场景。 |
 | `Retry.MaxInterval` | `*time.Duration` | `30s` | 指数退避过程中的最大等待时间，避免长时间故障时频繁重试。 |
@@ -68,40 +68,40 @@
 | `STELLAR_POD_IP` | `PodIP` | 当前 Pod IP。 |
 | `STELLAR_CONTAINER_NAME` | `ContainerName` | 当前容器名称。 |
 
-### Spectrum 产品级变量 `SPECTRUM_*`
+### Stellspec 产品级变量 `STELLSPEC_*`
 
-这些变量只作用于 `spectrum-go-sdk`，用于覆盖日志 SDK 自身的行为。推荐优先级如下：
+这些变量只作用于 `stellspec-go-sdk`，用于覆盖日志 SDK 自身的行为。推荐优先级如下：
 
 1. 代码显式配置
-2. `SPECTRUM_*`
+2. `STELLSPEC_*`
 3. `STELLAR_*`
 4. SDK 默认值
 
 | 环境变量 | 映射字段 | 详细说明 |
 | :--- | :--- | :--- |
-| `SPECTRUM_SERVICE_NAME` | `ServiceName` | 覆盖全局 `STELLAR_APP_NAME`，用于日志 SDK 局部重命名服务标识。 |
-| `SPECTRUM_SERVICE_NAMESPACE` | `ServiceNamespace` | 覆盖全局逻辑命名空间。 |
-| `SPECTRUM_SERVICE_VERSION` | `ServiceVersion` | 覆盖全局服务版本。 |
-| `SPECTRUM_SERVICE_INSTANCE_ID` | `ServiceInstanceID` | 覆盖全局实例 ID。 |
-| `SPECTRUM_ENVIRONMENT` | `Environment` | 覆盖全局环境标识。 |
-| `SPECTRUM_ENDPOINT` | `Endpoint` | 指定 OTLP 推送目标地址，生产环境通常应为本机 log-agent。 |
-| `SPECTRUM_PROTOCOL` | `Protocol` | 指定导出协议，当前仅支持 `grpc`。 |
-| `SPECTRUM_OUTPUT` | `Output` | 指定输出目标，例如 `otlp`、`stdout`、`stderr`、`console`。 |
-| `SPECTRUM_FORMAT` | `Format` | 指定本地输出格式，例如 `json` 或 `console`。 |
-| `SPECTRUM_LEVEL` | `Level` | 指定最小日志级别。 |
-| `SPECTRUM_INSECURE` | `Insecure` | 指定是否关闭 OTLP/gRPC 传输安全。 |
-| `SPECTRUM_DEVELOPMENT` | `Development` | 指定是否启用开发模式。 |
-| `SPECTRUM_ENABLE_CALLER` | `EnableCaller` | 指定是否收集调用方位置。 |
-| `SPECTRUM_ENABLE_STACKTRACE` | `EnableStacktrace` | 指定是否自动写出错误堆栈。 |
-| `SPECTRUM_BATCH_TIMEOUT` | `BatchTimeout` | 指定 BatchProcessor 的导出周期。 |
-| `SPECTRUM_EXPORT_TIMEOUT` | `ExportTimeout` | 指定单次导出的超时时间。 |
-| `SPECTRUM_MAX_BATCH_SIZE` | `MaxBatchSize` | 指定单次导出的最大日志条数。 |
-| `SPECTRUM_MAX_QUEUE_SIZE` | `MaxQueueSize` | 指定 BatchProcessor 最大队列容量。 |
-| `SPECTRUM_FALLBACK_FILE_PATH` | `FallbackFilePath` | 指定 OTLP 推送最终失败后的本地兜底文件路径。 |
-| `SPECTRUM_RETRY_ENABLED` | `Retry.Enabled` | 指定是否开启 exporter 级别重试。 |
-| `SPECTRUM_RETRY_INITIAL_INTERVAL` | `Retry.InitialInterval` | 指定首次重试等待时间，例如 `5s`。 |
-| `SPECTRUM_RETRY_MAX_INTERVAL` | `Retry.MaxInterval` | 指定指数退避过程中的最大等待时间，例如 `30s`。 |
-| `SPECTRUM_RETRY_MAX_ELAPSED_TIME` | `Retry.MaxElapsedTime` | 指定单批日志总重试时长，例如 `1m`。 |
+| `STELLSPEC_SERVICE_NAME` | `ServiceName` | 覆盖全局 `STELLAR_APP_NAME`，用于日志 SDK 局部重命名服务标识。 |
+| `STELLSPEC_SERVICE_NAMESPACE` | `ServiceNamespace` | 覆盖全局逻辑命名空间。 |
+| `STELLSPEC_SERVICE_VERSION` | `ServiceVersion` | 覆盖全局服务版本。 |
+| `STELLSPEC_SERVICE_INSTANCE_ID` | `ServiceInstanceID` | 覆盖全局实例 ID。 |
+| `STELLSPEC_ENVIRONMENT` | `Environment` | 覆盖全局环境标识。 |
+| `STELLSPEC_ENDPOINT` | `Endpoint` | 指定 OTLP 推送目标地址，生产环境通常应为本机 log-agent。 |
+| `STELLSPEC_PROTOCOL` | `Protocol` | 指定导出协议，当前仅支持 `grpc`。 |
+| `STELLSPEC_OUTPUT` | `Output` | 指定输出目标，例如 `otlp`、`stdout`、`stderr`、`console`。 |
+| `STELLSPEC_FORMAT` | `Format` | 指定本地输出格式，例如 `json` 或 `console`。 |
+| `STELLSPEC_LEVEL` | `Level` | 指定最小日志级别。 |
+| `STELLSPEC_INSECURE` | `Insecure` | 指定是否关闭 OTLP/gRPC 传输安全。 |
+| `STELLSPEC_DEVELOPMENT` | `Development` | 指定是否启用开发模式。 |
+| `STELLSPEC_ENABLE_CALLER` | `EnableCaller` | 指定是否收集调用方位置。 |
+| `STELLSPEC_ENABLE_STACKTRACE` | `EnableStacktrace` | 指定是否自动写出错误堆栈。 |
+| `STELLSPEC_BATCH_TIMEOUT` | `BatchTimeout` | 指定 BatchProcessor 的导出周期。 |
+| `STELLSPEC_EXPORT_TIMEOUT` | `ExportTimeout` | 指定单次导出的超时时间。 |
+| `STELLSPEC_MAX_BATCH_SIZE` | `MaxBatchSize` | 指定单次导出的最大日志条数。 |
+| `STELLSPEC_MAX_QUEUE_SIZE` | `MaxQueueSize` | 指定 BatchProcessor 最大队列容量。 |
+| `STELLSPEC_FALLBACK_FILE_PATH` | `FallbackFilePath` | 指定 OTLP 推送最终失败后的本地兜底文件路径。 |
+| `STELLSPEC_RETRY_ENABLED` | `Retry.Enabled` | 指定是否开启 exporter 级别重试。 |
+| `STELLSPEC_RETRY_INITIAL_INTERVAL` | `Retry.InitialInterval` | 指定首次重试等待时间，例如 `5s`。 |
+| `STELLSPEC_RETRY_MAX_INTERVAL` | `Retry.MaxInterval` | 指定指数退避过程中的最大等待时间，例如 `30s`。 |
+| `STELLSPEC_RETRY_MAX_ELAPSED_TIME` | `Retry.MaxElapsedTime` | 指定单批日志总重试时长，例如 `1m`。 |
 
 ## 超长日志截断说明
 

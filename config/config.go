@@ -6,7 +6,7 @@ const (
 	DefaultProtocol         = "grpc"
 	DefaultFormat           = "json"
 	DefaultOutput           = "otlp"
-	DefaultFallbackFilePath = "logs/spectrum-fallback.log"
+	DefaultFallbackFilePath = "logs/stellspec-fallback.log"
 	defaultRetryEnabled     = true
 	defaultRetryInitial     = 5 * time.Second
 	defaultRetryMaxInterval = 30 * time.Second

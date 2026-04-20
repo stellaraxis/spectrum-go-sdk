@@ -7,10 +7,10 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/internal/logbody"
-	"github.com/stellaraxis/spectrum-go-sdk/requestctx"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/internal/logbody"
+	"github.com/stellaraxis/stellspec-go-sdk/requestctx"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 )
 
 func TestNewLogger(t *testing.T) {

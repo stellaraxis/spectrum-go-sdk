@@ -6,15 +6,15 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/stellaraxis/spectrum-go-sdk/bridge/slogbridge"
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/requestctx"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/bridge/slogbridge"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/requestctx"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 )
 
 func main() {
 	cfg := config.Default()
-	cfg.ServiceName = "spectrum-slog-otlp-example"
+	cfg.ServiceName = "stellspec-slog-otlp-example"
 	cfg.ServiceNamespace = "stellar.examples"
 	cfg.ServiceVersion = "1.0.0"
 	cfg.Environment = "prod"

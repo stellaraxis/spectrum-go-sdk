@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/stellaraxis/spectrum-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
 	"go.opentelemetry.io/otel/attribute"
 )
 

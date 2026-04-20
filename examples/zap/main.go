@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/stellaraxis/spectrum-go-sdk/bridge/zapbridge"
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/bridge/zapbridge"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	if cfg.ServiceName == "" {
-		cfg.ServiceName = "spectrum-zap-example"
+		cfg.ServiceName = "stellspec-zap-example"
 	}
 	if cfg.ServiceNamespace == "" {
 		cfg.ServiceNamespace = "stellar.examples"

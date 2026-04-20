@@ -5,16 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/stellaraxis/spectrum-go-sdk/bridge/zapbridge"
-	"github.com/stellaraxis/spectrum-go-sdk/config"
-	"github.com/stellaraxis/spectrum-go-sdk/requestctx"
-	"github.com/stellaraxis/spectrum-go-sdk/sdk"
+	"github.com/stellaraxis/stellspec-go-sdk/bridge/zapbridge"
+	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellaraxis/stellspec-go-sdk/requestctx"
+	"github.com/stellaraxis/stellspec-go-sdk/sdk"
 	"go.uber.org/zap"
 )
 
 func main() {
 	cfg := config.Default()
-	cfg.ServiceName = "spectrum-zap-otlp-example"
+	cfg.ServiceName = "stellspec-zap-otlp-example"
 	cfg.ServiceNamespace = "stellar.examples"
 	cfg.ServiceVersion = "1.0.0"
 	cfg.Environment = "prod"
