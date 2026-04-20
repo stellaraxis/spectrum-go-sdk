@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/stellaraxis/stellspec-go-sdk/bridge/zapbridge"
-	"github.com/stellaraxis/stellspec-go-sdk/config"
-	"github.com/stellaraxis/stellspec-go-sdk/sdk"
+	"github.com/stellhub/stellspec-go-sdk/bridge/zapbridge"
+	"github.com/stellhub/stellspec-go-sdk/config"
+	"github.com/stellhub/stellspec-go-sdk/sdk"
 	"go.uber.org/zap"
 )
 

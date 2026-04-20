@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stellaraxis/stellspec-go-sdk/requestctx"
-	"github.com/stellaraxis/stellspec-go-sdk/sdk"
+	"github.com/stellhub/stellspec-go-sdk/requestctx"
+	"github.com/stellhub/stellspec-go-sdk/sdk"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

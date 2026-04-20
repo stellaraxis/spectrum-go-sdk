@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/stellaraxis/stellspec-go-sdk/bridge/slogbridge"
-	"github.com/stellaraxis/stellspec-go-sdk/config"
-	"github.com/stellaraxis/stellspec-go-sdk/sdk"
+	"github.com/stellhub/stellspec-go-sdk/bridge/slogbridge"
+	"github.com/stellhub/stellspec-go-sdk/config"
+	"github.com/stellhub/stellspec-go-sdk/sdk"
 )
 
 func main() {

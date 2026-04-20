@@ -3,7 +3,7 @@ package exporter
 import (
 	"context"
 
-	"github.com/stellaraxis/stellspec-go-sdk/config"
+	"github.com/stellhub/stellspec-go-sdk/config"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 )

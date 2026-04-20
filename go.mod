@@ -1,4 +1,4 @@
-module github.com/stellaraxis/stellspec-go-sdk
+module github.com/stellhub/stellspec-go-sdk
 
 go 1.25.9
 

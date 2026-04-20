@@ -3,10 +3,10 @@ package zapbridge
 import (
 	"context"
 
-	"github.com/stellaraxis/stellspec-go-sdk/internal/logbody"
-	"github.com/stellaraxis/stellspec-go-sdk/internal/otelutil"
-	"github.com/stellaraxis/stellspec-go-sdk/internal/severity"
-	"github.com/stellaraxis/stellspec-go-sdk/sdk"
+	"github.com/stellhub/stellspec-go-sdk/internal/logbody"
+	"github.com/stellhub/stellspec-go-sdk/internal/otelutil"
+	"github.com/stellhub/stellspec-go-sdk/internal/severity"
+	"github.com/stellhub/stellspec-go-sdk/sdk"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.uber.org/zap/zapcore"
 )
