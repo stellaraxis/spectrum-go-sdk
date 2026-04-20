@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestNormalizeDevelopmentDefaults(t *testing.T) {
 	cfg, err := Config{
@@ -23,6 +26,11 @@ func TestApplyEnv(t *testing.T) {
 	t.Setenv(stellarAppName, "billing-service")
 	t.Setenv(stellarEnv, "prod")
 	t.Setenv(spectrumEndpoint, "localhost:4317")
+	t.Setenv(spectrumFallbackFilePath, "logs/custom-fallback.log")
+	t.Setenv(spectrumRetryEnabled, "false")
+	t.Setenv(spectrumRetryInitial, "2s")
+	t.Setenv(spectrumRetryMaxInterval, "10s")
+	t.Setenv(spectrumRetryMaxElapsed, "20s")
 
 	cfg := Default()
 	if err := cfg.ApplyEnv(); err != nil {
@@ -37,6 +45,21 @@ func TestApplyEnv(t *testing.T) {
 	}
 	if cfg.Endpoint != "localhost:4317" {
 		t.Fatalf("unexpected endpoint %q", cfg.Endpoint)
+	}
+	if cfg.FallbackFilePath != "logs/custom-fallback.log" {
+		t.Fatalf("unexpected fallback file path %q", cfg.FallbackFilePath)
+	}
+	if cfg.Retry.Enabled == nil || *cfg.Retry.Enabled {
+		t.Fatalf("unexpected retry enabled: %v", cfg.Retry.Enabled)
+	}
+	if cfg.Retry.InitialInterval == nil || *cfg.Retry.InitialInterval != 2*time.Second {
+		t.Fatalf("unexpected retry initial interval: %v", cfg.Retry.InitialInterval)
+	}
+	if cfg.Retry.MaxInterval == nil || *cfg.Retry.MaxInterval != 10*time.Second {
+		t.Fatalf("unexpected retry max interval: %v", cfg.Retry.MaxInterval)
+	}
+	if cfg.Retry.MaxElapsedTime == nil || *cfg.Retry.MaxElapsedTime != 20*time.Second {
+		t.Fatalf("unexpected retry max elapsed time: %v", cfg.Retry.MaxElapsedTime)
 	}
 }
 
@@ -83,5 +106,47 @@ func TestSpectrumEnvOverridesStellarEnv(t *testing.T) {
 
 	if cfg.ServiceName != "spectrum-order-service" {
 		t.Fatalf("unexpected service name %q", cfg.ServiceName)
+	}
+}
+
+func TestNormalizeUsesDefaultFallbackFilePath(t *testing.T) {
+	cfg, err := Config{
+		ServiceName:      "user-service",
+		Environment:      "prod",
+		Output:           OutputOTLP,
+		Endpoint:         "localhost:4317",
+		FallbackFilePath: "",
+	}.Normalize()
+	if err != nil {
+		t.Fatalf("normalize config: %v", err)
+	}
+
+	if cfg.FallbackFilePath != DefaultFallbackFilePath {
+		t.Fatalf("unexpected fallback file path %q", cfg.FallbackFilePath)
+	}
+}
+
+func TestNormalizeUsesDefaultRetryConfig(t *testing.T) {
+	cfg, err := Config{
+		ServiceName: "user-service",
+		Environment: "prod",
+		Output:      OutputOTLP,
+		Endpoint:    "localhost:4317",
+	}.Normalize()
+	if err != nil {
+		t.Fatalf("normalize config: %v", err)
+	}
+
+	if cfg.Retry.Enabled == nil || !*cfg.Retry.Enabled {
+		t.Fatalf("unexpected retry enabled: %v", cfg.Retry.Enabled)
+	}
+	if cfg.Retry.InitialInterval == nil || *cfg.Retry.InitialInterval != defaultRetryInitial {
+		t.Fatalf("unexpected retry initial interval: %v", cfg.Retry.InitialInterval)
+	}
+	if cfg.Retry.MaxInterval == nil || *cfg.Retry.MaxInterval != defaultRetryMaxInterval {
+		t.Fatalf("unexpected retry max interval: %v", cfg.Retry.MaxInterval)
+	}
+	if cfg.Retry.MaxElapsedTime == nil || *cfg.Retry.MaxElapsedTime != defaultRetryMaxElapsed {
+		t.Fatalf("unexpected retry max elapsed time: %v", cfg.Retry.MaxElapsedTime)
 	}
 }

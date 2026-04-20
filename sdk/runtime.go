@@ -124,7 +124,12 @@ func buildProcessor(cfg config.Config, exp sdklog.Exporter) sdklog.Processor {
 
 func buildExporter(ctx context.Context, cfg config.Config, opts options) (sdklog.Exporter, error) {
 	if cfg.Output == config.OutputOTLP {
-		return exporter.NewOTLPGRPCExporter(ctx, cfg)
+		exp, err := exporter.NewOTLPGRPCExporter(ctx, cfg)
+		if err != nil {
+			return nil, err
+		}
+		// 当 OTLP 推送最终失败时，先把日志追加到本地兜底文件，避免 log-agent 不可用时直接丢失。
+		return exporter.NewFailoverExporter(exp, cfg.FallbackFilePath), nil
 	}
 
 	return exporter.NewConsoleExporter(cfg.Format, cfg.Output, opts.stdout, opts.stderr), nil

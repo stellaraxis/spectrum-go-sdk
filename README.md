@@ -18,6 +18,9 @@
 - 为 Go 应用提供统一的 `zap` 与 `slog` 日志桥接能力
 - 将业务日志转换为 OpenTelemetry `LogRecord`
 - 通过 OTLP exporter 将日志发送到本机 `log-agent / Collector`
+- 支持 OTLP exporter 级别的可配置重试策略
+- 支持 OTLP 推送最终失败后优先落本地兜底文件
+- 支持在 SDK 内统一截断超长日志正文，避免超大消息体压垮链路
 - 在开发环境输出到 `stdout` 与 `stderr`，便于本地调试
 - 在生产环境输出到本机日志代理，并以 `JSON` 形式传输
 - 尽可能保持业务侧原有日志调用方式不变
@@ -121,6 +124,29 @@ localhost:4317
 - 统一发往本机 Agent，再由 Agent 完成后续处理与转发
 - 所有结构化字段在传输过程中保持稳定的 JSON 语义
 
+### 可靠性与保护机制
+
+当前 SDK 在生产链路中默认具备以下保护能力：
+
+- OTLP exporter 自带瞬时错误重试，默认策略为：
+  - 首次重试间隔 `5s`
+  - 最大重试间隔 `30s`
+  - 单批总重试窗口 `1m`
+- 当 OTLP 推送最终失败时，日志会优先写入本地兜底文件：
+  - 默认路径：`logs/spectrum-fallback.log`
+- SDK 会在进入 exporter 之前统一截断超长日志正文：
+  - 当前固定最大正文长度：`32 KiB`
+  - 截断后会自动追加属性：
+    - `log.body_truncated=true`
+    - `log.body_original_size`
+    - `log.body_max_size`
+
+说明：
+
+- exporter 级别重试用于处理本机 `log-agent` 短暂重启、端口瞬断、瞬时网络抖动等场景
+- 重试窗口耗尽后，不再在主链路里继续二次同步重试，而是立即切换到本地落盘
+- 超长正文截断策略放在 SDK，而不是压给低频更新的 `log-agent`
+
 ## 全局环境变量规范
 
 `Stellar Axis（星轴）` 体系建议所有中间件统一遵循一套基础应用环境变量规范，详细定义见 [docs/environment-variable-spec.md](E:\PersonalCode\GoProject\spectrum-go-sdk\docs\environment-variable-spec.md)。
@@ -136,6 +162,10 @@ localhost:4317
 
 - `STELLAR_*` 用于平台统一注入的应用身份和部署拓扑元数据
 - `SPECTRUM_*` 用于日志 SDK 自身的局部覆盖，例如 OTLP 地址、输出目标、日志级别
+
+完整字段说明、默认值、重试配置、失败落盘行为和环境变量解释可查看：
+
+- [docs/configuration-reference.md](E:\PersonalCode\GoProject\spectrum-go-sdk\docs\configuration-reference.md)
 
 推荐的全局基础变量如下：
 
@@ -209,6 +239,7 @@ localhost:4317
 - 自动读取 `STELLAR_*` 与 `SPECTRUM_*` 环境变量
 - 如果未注入基础应用元数据，则回退到示例默认值
 - 默认以开发模式输出到本地控制台
+- 生产链路默认启用 exporter 重试、失败落本地文件和超长正文截断保护
 
 ### Zap Bridge 初始化和接入示例
 
@@ -246,6 +277,20 @@ func main() {
 		Output:           "stdout",
 		Level:            "info",
 		Development:      true,
+		BatchTimeout:     5 * time.Second,
+		ExportTimeout:    3 * time.Second,
+		MaxBatchSize:     512,
+		MaxQueueSize:     2048,
+		FallbackFilePath: "logs/spectrum-fallback.log",
+		Retry: config.RetryConfig{
+			Enabled:         boolPtr(true),
+			InitialInterval: durationPtr(5 * time.Second),
+			MaxInterval:     durationPtr(30 * time.Second),
+			MaxElapsedTime:  durationPtr(1 * time.Minute),
+		},
+		Headers: map[string]string{
+			"x-tenant": "t-01",
+		},
 		EnableCaller:     true,
 		EnableStacktrace: true,
 	}
@@ -287,6 +332,14 @@ func main() {
 
 	<-ctx.Done()
 }
+
+func boolPtr(v bool) *bool {
+	return &v
+}
+
+func durationPtr(v time.Duration) *time.Duration {
+	return &v
+}
 ```
 
 推荐 `zap bridge` 对外能力：
@@ -296,6 +349,9 @@ func main() {
 - 自动透传 `zap.Field`
 - 支持调用方、堆栈、错误对象、时间戳写入 `LogRecord`
 - 支持开发环境输出到控制台，生产环境输出到 OTLP exporter
+- 支持通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置 exporter 重试策略
+- 支持 OTLP 最终失败时优先落本地兜底文件
+- 支持自动截断超长正文并输出截断标记属性
 
 ### Slog Bridge 初始化和接入示例
 
@@ -333,6 +389,17 @@ func main() {
 		Output:           "otlp",
 		Level:            "info",
 		Development:      false,
+		BatchTimeout:     5 * time.Second,
+		ExportTimeout:    3 * time.Second,
+		MaxBatchSize:     512,
+		MaxQueueSize:     2048,
+		FallbackFilePath: "logs/spectrum-fallback.log",
+		Retry: config.RetryConfig{
+			Enabled:         boolPtr(true),
+			InitialInterval: durationPtr(5 * time.Second),
+			MaxInterval:     durationPtr(30 * time.Second),
+			MaxElapsedTime:  durationPtr(1 * time.Minute),
+		},
 		EnableCaller:     true,
 		EnableStacktrace: true,
 	}
@@ -377,6 +444,14 @@ func main() {
 
 	<-ctx.Done()
 }
+
+func boolPtr(v bool) *bool {
+	return &v
+}
+
+func durationPtr(v time.Duration) *time.Duration {
+	return &v
+}
 ```
 
 推荐 `slog bridge` 对外能力：
@@ -386,6 +461,9 @@ func main() {
 - 支持 `WithAttrs`、`WithGroup`、`AddSource`
 - 支持 `context.Context` 中的链路信息透传
 - 与 `zap bridge` 共用同一套 Runtime、Exporter 与配置模型
+- 支持通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置 exporter 重试策略
+- 支持 OTLP 最终失败时优先落本地兜底文件
+- 支持自动截断超长正文并输出截断标记属性
 
 ## 推荐包结构
 
@@ -478,8 +556,17 @@ type Config struct {
 	ExportTimeout      time.Duration
 	MaxBatchSize       int
 	MaxQueueSize       int
+	FallbackFilePath   string
+	Retry              RetryConfig
 	Headers            map[string]string
 	ResourceAttributes map[string]string
+}
+
+type RetryConfig struct {
+	Enabled         *bool
+	InitialInterval *time.Duration
+	MaxInterval     *time.Duration
+	MaxElapsedTime  *time.Duration
 }
 ```
 
@@ -516,8 +603,19 @@ type Config struct {
 | `ExportTimeout` | `time.Duration` | `3s` | 单次导出超时 |
 | `MaxBatchSize` | `int` | `512` | 单批最大条数 |
 | `MaxQueueSize` | `int` | `2048` | 本地队列大小 |
+| `FallbackFilePath` | `string` | `logs/spectrum-fallback.log` | OTLP 最终失败后的本地兜底文件路径 |
+| `Retry.Enabled` | `*bool` | `true` | 是否启用 OTLP exporter 级别重试 |
+| `Retry.InitialInterval` | `*time.Duration` | `5s` | 第一次重试前等待时间 |
+| `Retry.MaxInterval` | `*time.Duration` | `30s` | 指数退避的最大等待间隔 |
+| `Retry.MaxElapsedTime` | `*time.Duration` | `1m` | 单批日志允许重试的总时长 |
 | `Headers` | `map[string]string` | 自定义 | OTLP 透传请求头 |
 | `ResourceAttributes` | `map[string]string` | 自定义 | 额外资源属性 |
+
+补充说明：
+
+- 超长日志正文会在 SDK 内统一截断到 `32 KiB`
+- 当前正文截断上限不对业务开放配置
+- 截断后 SDK 会自动写出 `log.body_truncated`、`log.body_original_size`、`log.body_max_size`
 
 ### 环境默认值建议
 
@@ -570,6 +668,30 @@ type Config struct {
 | `SPECTRUM_LEVEL` | `Level` |
 | `SPECTRUM_INSECURE` | `Insecure` |
 | `SPECTRUM_DEVELOPMENT` | `Development` |
+| `SPECTRUM_ENABLE_CALLER` | `EnableCaller` |
+| `SPECTRUM_ENABLE_STACKTRACE` | `EnableStacktrace` |
+| `SPECTRUM_BATCH_TIMEOUT` | `BatchTimeout` |
+| `SPECTRUM_EXPORT_TIMEOUT` | `ExportTimeout` |
+| `SPECTRUM_MAX_BATCH_SIZE` | `MaxBatchSize` |
+| `SPECTRUM_MAX_QUEUE_SIZE` | `MaxQueueSize` |
+| `SPECTRUM_FALLBACK_FILE_PATH` | `FallbackFilePath` |
+| `SPECTRUM_RETRY_ENABLED` | `Retry.Enabled` |
+| `SPECTRUM_RETRY_INITIAL_INTERVAL` | `Retry.InitialInterval` |
+| `SPECTRUM_RETRY_MAX_INTERVAL` | `Retry.MaxInterval` |
+| `SPECTRUM_RETRY_MAX_ELAPSED_TIME` | `Retry.MaxElapsedTime` |
+
+### 新增能力速览
+
+如果你只关心这次新增的能力，可以先看这几项：
+
+- exporter 重试：
+  - 通过 `config.Config.Retry` 或 `SPECTRUM_RETRY_*` 配置
+- 推送失败本地落盘：
+  - 通过 `FallbackFilePath` 或 `SPECTRUM_FALLBACK_FILE_PATH` 配置
+- 超长日志正文截断：
+  - SDK 内固定为 `32 KiB`
+  - 当前不对业务开放配置
+  - 截断后会自动写出 `log.body_truncated` 等属性
 
 ## 推荐对外 API 设计
 

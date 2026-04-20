@@ -38,6 +38,27 @@ func (c Config) Validate() error {
 	if c.MaxQueueSize <= 0 {
 		return fmt.Errorf("max queue size must be greater than zero")
 	}
+	if c.Retry.Enabled == nil {
+		return fmt.Errorf("retry enabled must not be nil")
+	}
+	if c.Retry.InitialInterval == nil {
+		return fmt.Errorf("retry initial interval must not be nil")
+	}
+	if c.Retry.MaxInterval == nil {
+		return fmt.Errorf("retry max interval must not be nil")
+	}
+	if c.Retry.MaxElapsedTime == nil {
+		return fmt.Errorf("retry max elapsed time must not be nil")
+	}
+	if *c.Retry.InitialInterval <= 0 {
+		return fmt.Errorf("retry initial interval must be greater than zero")
+	}
+	if *c.Retry.MaxInterval <= 0 {
+		return fmt.Errorf("retry max interval must be greater than zero")
+	}
+	if *c.Retry.MaxElapsedTime < 0 {
+		return fmt.Errorf("retry max elapsed time must not be negative")
+	}
 
 	return nil
 }

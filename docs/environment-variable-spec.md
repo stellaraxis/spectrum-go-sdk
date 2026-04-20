@@ -126,3 +126,26 @@
 - 将这些元数据写入 OpenTelemetry Resource
 - 允许 `SPECTRUM_*` 对日志 SDK 局部行为进行覆盖
 - 在业务代码未显式传入 `ServiceName`、`ServiceVersion` 等字段时，自动从 `STELLAR_*` 中补全
+
+## 架构建议：抽离通用基础元数据 SDK
+
+从平台长期演进角度看，`STELLAR_*` 这批变量更适合作为“全中间件共享的基础应用元数据协议”，而不是由每个 SDK 各自重复解析一遍。推荐后续单独沉淀一个基础 SDK 或基础模块，例如：
+
+- `stellar-appmeta-sdk`
+- `stellar-env-sdk`
+- `stellar-runtime-meta`
+
+推荐该基础 SDK 统一提供以下能力：
+
+- 统一解析 `STELLAR_*` 环境变量
+- 提供强类型配置模型，例如 `AppMeta`、`RuntimeMeta`
+- 统一优先级与默认值策略
+- 提供转 OTel Resource、日志字段、链路标签、指标标签的适配能力
+- 作为各中间件 SDK 的共同依赖
+
+这样做的收益包括：
+
+- 避免每个 SDK 都重复维护一遍相同字段和解析逻辑
+- 保证日志、链路、指标、配置等系统对同一组基础元数据的理解一致
+- 平台新增或调整基础字段时，只需在公共 SDK 中演进一次
+- 业务应用和各中间件 SDK 的接入体验更统一

@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/stellaraxis/spectrum-go-sdk/internal/logbody"
 	"github.com/stellaraxis/spectrum-go-sdk/internal/otelutil"
 	"github.com/stellaraxis/spectrum-go-sdk/internal/severity"
 	"github.com/stellaraxis/spectrum-go-sdk/requestctx"
@@ -78,18 +79,28 @@ func (h *Handler) Enabled(_ context.Context, level slog.Level) bool {
 // Handle emits the record as an OpenTelemetry log record.
 func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
 	otelRecord := otellog.Record{}
+	bodyResult := logbody.Normalize(record.Message)
 	if !record.Time.IsZero() {
 		otelRecord.SetTimestamp(record.Time)
 		otelRecord.SetObservedTimestamp(record.Time)
 	}
 	otelRecord.SetSeverity(severity.FromSlog(record.Level))
 	otelRecord.SetSeverityText(severity.TextFromSlog(record.Level))
-	otelRecord.SetBody(otellog.StringValue(record.Message))
+	// SDK 在进入 exporter 之前统一截断超长日志正文，避免超大消息体持续占用队列、
+	// 放大 OTLP 传输成本，并把复杂策略下沉到低频更新的 log-agent 中。
+	otelRecord.SetBody(otellog.StringValue(bodyResult.Message))
 	setTraceContext(ctx, &otelRecord)
 
 	attrs := make([]otellog.KeyValue, 0, len(h.attrs)+record.NumAttrs()+4)
 	attrs = append(attrs, attrsToOTel(h.groups, h.attrs...)...)
 	attrs = append(attrs, contextAttrs(ctx)...)
+	if bodyResult.Truncated {
+		attrs = append(attrs,
+			otellog.Bool("log.body_truncated", true),
+			otellog.Int("log.body_original_size", bodyResult.OriginalBytes),
+			otellog.Int("log.body_max_size", bodyResult.MaxBytes),
+		)
+	}
 	record.Attrs(func(attr slog.Attr) bool {
 		attrs = append(attrs, attrToOTel(h.groups, attr)...)
 		return true
@@ -110,6 +121,8 @@ func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
 	}
 
 	otelRecord.AddAttributes(attrs...)
+	// 这里只负责把业务日志转换成 OTel LogRecord 并交给 SDK provider；
+	// 真正向本机 log-agent 发起 OTLP 推送以及失败后的本地落盘发生在 exporter 层。
 	h.logger.Emit(ctx, otelRecord)
 	return nil
 }

@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stellaraxis/spectrum-go-sdk/config"
+	"github.com/stellaraxis/spectrum-go-sdk/internal/logbody"
 	"github.com/stellaraxis/spectrum-go-sdk/requestctx"
 	"github.com/stellaraxis/spectrum-go-sdk/sdk"
 )
@@ -57,5 +59,61 @@ func TestNewLogger(t *testing.T) {
 	}
 	if attrs["traceparent"] == "" {
 		t.Fatal("traceparent should not be empty")
+	}
+}
+
+func TestNewLoggerTruncatesLongBody(t *testing.T) {
+	stdout := new(bytes.Buffer)
+	runtime, err := sdk.New(context.Background(), config.Config{
+		ServiceName: "user-service",
+		Environment: "dev",
+		Format:      config.FormatJSON,
+	}, sdk.WithWriters(stdout, stdout))
+	if err != nil {
+		t.Fatalf("new runtime: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = runtime.Shutdown(context.Background())
+	})
+
+	logger, err := NewLogger(runtime, Options{Name: "test-zap-truncate"})
+	if err != nil {
+		t.Fatalf("new logger: %v", err)
+	}
+
+	message := bytes.Repeat([]byte("谱"), logbody.MaxBytes+128)
+	logger.Info(string(message))
+	if err := logger.Sync(); err != nil {
+		t.Fatalf("sync logger: %v", err)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("unmarshal log line: %v", err)
+	}
+
+	body, ok := payload["body"].(string)
+	if !ok {
+		t.Fatalf("body should be string: %T", payload["body"])
+	}
+	if len(body) > logbody.MaxBytes {
+		t.Fatalf("body should be truncated to <= %d bytes, got %d", logbody.MaxBytes, len(body))
+	}
+	if !utf8.ValidString(body) {
+		t.Fatal("body should remain valid utf-8 after truncation")
+	}
+
+	attrs, ok := payload["attributes"].(map[string]any)
+	if !ok {
+		t.Fatal("attributes should be a map")
+	}
+	if attrs["log.body_truncated"] != true {
+		t.Fatalf("unexpected truncation flag: %v", attrs["log.body_truncated"])
+	}
+	if attrs["log.body_original_size"] != float64(len(string(message))) {
+		t.Fatalf("unexpected original size: %v", attrs["log.body_original_size"])
+	}
+	if attrs["log.body_max_size"] != float64(logbody.MaxBytes) {
+		t.Fatalf("unexpected max size: %v", attrs["log.body_max_size"])
 	}
 }

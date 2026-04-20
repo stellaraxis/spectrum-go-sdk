@@ -43,6 +43,11 @@ const (
 	spectrumExportTimeout    = "SPECTRUM_EXPORT_TIMEOUT"
 	spectrumMaxBatchSize     = "SPECTRUM_MAX_BATCH_SIZE"
 	spectrumMaxQueueSize     = "SPECTRUM_MAX_QUEUE_SIZE"
+	spectrumFallbackFilePath = "SPECTRUM_FALLBACK_FILE_PATH"
+	spectrumRetryEnabled     = "SPECTRUM_RETRY_ENABLED"
+	spectrumRetryInitial     = "SPECTRUM_RETRY_INITIAL_INTERVAL"
+	spectrumRetryMaxInterval = "SPECTRUM_RETRY_MAX_INTERVAL"
+	spectrumRetryMaxElapsed  = "SPECTRUM_RETRY_MAX_ELAPSED_TIME"
 )
 
 // ApplyEnv loads global Stellar metadata first, then applies Spectrum-specific overrides.
@@ -86,6 +91,7 @@ func (c *Config) ApplySpectrumEnv() error {
 	setString(&c.Output, spectrumOutput)
 	setString(&c.Format, spectrumFormat)
 	setString(&c.Level, spectrumLevel)
+	setString(&c.FallbackFilePath, spectrumFallbackFilePath)
 
 	if err := setBool(&c.Insecure, spectrumInsecure); err != nil {
 		return err
@@ -109,6 +115,18 @@ func (c *Config) ApplySpectrumEnv() error {
 		return err
 	}
 	if err := setInt(&c.MaxQueueSize, spectrumMaxQueueSize); err != nil {
+		return err
+	}
+	if err := setRetryBool(&c.Retry.Enabled, spectrumRetryEnabled); err != nil {
+		return err
+	}
+	if err := setRetryDuration(&c.Retry.InitialInterval, spectrumRetryInitial); err != nil {
+		return err
+	}
+	if err := setRetryDuration(&c.Retry.MaxInterval, spectrumRetryMaxInterval); err != nil {
+		return err
+	}
+	if err := setRetryDuration(&c.Retry.MaxElapsedTime, spectrumRetryMaxElapsed); err != nil {
 		return err
 	}
 
@@ -184,5 +202,31 @@ func setDuration(target *time.Duration, key string) error {
 		return fmt.Errorf("parse %s: %w", key, err)
 	}
 	*target = parsed
+	return nil
+}
+
+func setRetryBool(target **bool, key string) error {
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		return nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("parse %s: %w", key, err)
+	}
+	*target = &parsed
+	return nil
+}
+
+func setRetryDuration(target **time.Duration, key string) error {
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		return nil
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil {
+		return fmt.Errorf("parse %s: %w", key, err)
+	}
+	*target = &parsed
 	return nil
 }

@@ -3,6 +3,7 @@ package zapbridge
 import (
 	"context"
 
+	"github.com/stellaraxis/spectrum-go-sdk/internal/logbody"
 	"github.com/stellaraxis/spectrum-go-sdk/internal/otelutil"
 	"github.com/stellaraxis/spectrum-go-sdk/internal/severity"
 	"github.com/stellaraxis/spectrum-go-sdk/sdk"
@@ -65,15 +66,25 @@ func (c *Core) Check(entry zapcore.Entry, checked *zapcore.CheckedEntry) *zapcor
 // Write converts the zap entry into an OTel log record and emits it.
 func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	record := otellog.Record{}
+	bodyResult := logbody.Normalize(entry.Message)
 	record.SetTimestamp(entry.Time)
 	record.SetObservedTimestamp(entry.Time)
 	record.SetSeverity(severity.FromZap(entry.Level))
 	record.SetSeverityText(severity.TextFromZap(entry.Level))
-	record.SetBody(otellog.StringValue(entry.Message))
+	// SDK 在进入 exporter 之前统一截断超长日志正文，避免超大消息体持续占用队列、
+	// 放大 OTLP 传输成本，并把复杂策略下沉到低频更新的 log-agent 中。
+	record.SetBody(otellog.StringValue(bodyResult.Message))
 
 	attrs, err := fieldsToAttributes(c.fields, fields)
 	if err != nil {
 		return err
+	}
+	if bodyResult.Truncated {
+		attrs = append(attrs,
+			otellog.Bool("log.body_truncated", true),
+			otellog.Int("log.body_original_size", bodyResult.OriginalBytes),
+			otellog.Int("log.body_max_size", bodyResult.MaxBytes),
+		)
 	}
 	if entry.LoggerName != "" {
 		attrs = append(attrs, otellog.String("logger.name", entry.LoggerName))
@@ -92,6 +103,8 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	}
 	record.AddAttributes(attrs...)
 
+	// 这里只负责把 zap 日志转换成 OTel LogRecord 并交给 SDK provider；
+	// 真正向本机 log-agent 发起 OTLP 推送以及失败后的本地落盘发生在 exporter 层。
 	c.logger.Emit(context.Background(), record)
 	return nil
 }
